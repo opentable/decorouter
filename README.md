@@ -21,7 +21,7 @@ import { Route } from '../decorouter';
 
 export class Controller
 {
-    constructor(){
+    constructor() {
         //usage not requiring babel-plugin-transform-decorators-legacy
         Route('get','/methodWithoutDecorator')(this, 'methodWithoutDecorator');
     }
@@ -31,37 +31,37 @@ export class Controller
     method(req, res) {
         res.send({from: 'method'});
     }
-    
+
     //async methods can (and probably should) be used where neccessary
     @Route('get', '/methodAsync')
-    async methodAsync(req, res){
+    async methodAsync(req, res) {
         res.send({from: 'methodAsync'});
     }
-    
+
     //additional handlers can be added after route eg (req, res, next) => next()
     @Route('get', '/methodWithAdditionalHandler', (req, res, next) => { res.handlerCalled = true; next();})
     methodWithAdditionalHandler(req, res) {
         res.send({
-            from: 'methodWithAdditionalHandler', 
+            from: 'methodWithAdditionalHandler',
             handlerCalled: res.handlerCalled});
     }
-    
+
     methodWithoutDecorator(req, res) {
         res.send({from: 'methodWithoutDecorator'});
     }
-    
+
     //will defaut to 'get' and '/defaultRouteAssignedByMethodName'
     @Route()
-    defaultRouteAssignedByMethodName(req, res){
-       res.send({from: 'defaultRouteAssignedByMethodName'}); 
+    defaultRouteAssignedByMethodName(req, res) {
+       res.send({from: 'defaultRouteAssignedByMethodName'});
     }
-       
+
 }
 ```
 
 Registering routes
 ```javascript
-import {addRoutes, addRoutesFromDir } from 'decorouter';
+import { addRoutes, addRoutesFromDir } from 'decorouter';
 import express from 'express';
 import { Controller } from './testControllers';
 
@@ -71,5 +71,3 @@ addRoutes(router, () => new Controller());
 //or all in this directory
 addRoutesFromDir(router, module, (typeObject) => new typeObject());
 ```
-
-
