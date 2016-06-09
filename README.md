@@ -1,7 +1,7 @@
 Decorouter
 ===================
 
-Simple decorater based es6 class method routing for express nodejs
+Simple decorator based es6 class method routing for express nodejs
 
 [![NPM version](https://badge.fury.io/js/decorouter.png)](http://badge.fury.io/js/decorouter)
 [![Build Status](https://travis-ci.org/opentable/decorouter.png?branch=master)](https://travis-ci.org/decorouter/spur-ioc)
