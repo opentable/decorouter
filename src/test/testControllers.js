@@ -44,15 +44,22 @@ export class Controller
 
     @Route('get', '/methodThrows')
     methodThrows(req, res) {
-        res.send({from: 'methodThrows'});
+        //res.send({from: 'methodThrows'});
         throw new Error('this is an error');
     }
 
     @Route('get', '/methodThrowsAsync')
     async methodThrowsAsync(req, res) {
-        res.send({from: 'methodThrowsAsync'});
+        //res.send({from: 'methodThrowsAsync'});
         throw new Error('this is an error');
     }
-
+    
+    @Route('get', '/methodWithNext')
+    methodWithNext(req, res, next) {
+        setTimeout(() => {
+            res.status(200).send({from: 'methodWithNext'});
+            next();
+        }, 500);
+    }
 
 }

@@ -2,150 +2,107 @@ import {addRoutes, addRoutesFromDir } from '../decorouter';
 import { Controller, plainHandler } from './testControllers';
 import express from 'express';
 import * as chai from 'chai';
+import request from 'supertest';
 
 let expect = chai.expect;
 chai.config.includeStack = true;
 
 describe('Express class method route decorator tests', () => {
+    
+    let app = express();
+    let server = null;
 
-    function mockReq(route) {
-        var i = 0;
-        var sent = {};
-        var err = null;
-        let req = {}, res = { send: (data) => sent = data};
-
-        var deferred = Promise.defer();
-        
-        let next = (error) => {
-            if(!err) err = error;
-            if(i >= route.stack.length) {
-                deferred.resolve([sent, err]);
-                return;
-            }
-            let curr = route.stack[i++];
-            curr.handle(req, res, next);
-        };
-
-        next();
-        return deferred.promise;
-    }
-
-    it('should map plain route to plain class method', () => {
+    before((done) => {
         let router = express.Router();
-
         addRoutes(router, () => new Controller());
-        let layer = router.stack.find((layer) => {
-            return layer.route.path === '/method';
-        });
-        expect(layer).to.be.ok;
-        return mockReq(layer.route).then(res => {
-            let [sent] = res;
-            expect(sent.from).to.be.equal('method');
-        });
-    });
-
-    it('should map async/promise method and wrap with call to next', () => {
-        let router = express.Router();
-
-        addRoutes(router, () => new Controller());
-        let layer = router.stack.find((layer) => {
-            return layer.route.path === '/methodAsync';
-        });
-        expect(layer).to.be.ok;
-        return mockReq(layer.route).then(res => {
-            let [sent] = res;
-            expect(sent.from).to.be.equal('methodAsync');
-        });
-    });
-
-    it('should allow passing extra handlers to route', () => {
-        let router = express.Router();
-
-        addRoutes(router, () => new Controller());
-        let layer = router.stack.find((layer) => {
-            return layer.route.path === '/methodWithAdditionalHandler';
-        });
-        expect(layer).to.be.ok;
-        return mockReq(layer.route).then(res => {
-            let [sent] = res;
-            expect(sent.from).to.be.equal('methodWithAdditionalHandler');
-            expect(sent.handlerCalled).to.be.equal(true);
-        });
-    });
-
-    it('should map route declared in contructor without decorator', () => {
-        let router = express.Router();
-
-        addRoutes(router, () => new Controller());
-        let layer = router.stack.find((layer) => {
-            return layer.route.path === '/methodWithoutDecorator';
-        });
-        expect(layer).to.be.ok;
-        return mockReq(layer.route).then(res => {
-            let [sent] = res;
-            expect(sent.from).to.be.equal('methodWithoutDecorator');
-        });
-    });
-
-    it('should by default create a route with the name of the method', () => {
-        let router = express.Router();
-
-        addRoutes(router, () => new Controller());
-        let layer = router.stack.find((layer) => {
-            //console.log(layer.route.path);
-            return layer.route.path === '/Controller/defaultRouteAssignedByMethodName';
-        });
-        expect(layer).to.be.ok;
-        return mockReq(layer.route).then(res => {
-            let [sent] = res;
-            expect(sent.from).to.be.equal('defaultRouteAssignedByMethodName');
-        });
-    });
-
-    it('should map plain function route handler', () => {
-        let router = express.Router();
-
-        //console.log(plainHandler);
         addRoutes(router, () => plainHandler);
-        let layer = router.stack.find((layer) => {
-            return layer.route.path === '/plainHandler';
-        });
-        expect(layer).to.be.ok;
-        return mockReq(layer.route).then(res => {
-            let [sent] = res;
-            expect(sent.from).to.be.equal('plainHandler');
-        });
+        app.use('/', router);
+        server = app.listen(3131, () => {
+            done();
+            console.log('starting');
+        });     
+    });
+    after((done) => {
+        server.close();
+        console.log('finish');
+        done();
     });
 
-    it('should call next passing error in case of exception in handler', () => {
-        let router = express.Router();
-
-        addRoutes(router, () => new Controller());
-        let layer = router.stack.find((layer) => {
-            return layer.route.path === '/methodThrows';
-        });
-        expect(layer).to.be.ok;
-        return mockReq(layer.route).then(res => {
-            let [sent, err] = res;
-            expect(sent.from).to.be.equal('methodThrows');
-            expect(err.message).to.be.equal('this is an error');
-        });
+    it('should map plain route to plain class method', (done) => {
+    
+        request(server)
+        .get('/method')
+        .expect(200, {
+            from: 'method'
+        }, done);
     });
 
-    it('should call next passing error in case of exception in async handler', () => {
-        let router = express.Router();
-
-        addRoutes(router, () => new Controller());
-        let layer = router.stack.find((layer) => {
-            return layer.route.path === '/methodThrowsAsync';
-        });
-        expect(layer).to.be.ok;
-        return mockReq(layer.route).then(res => {
-            let [sent, err] = res;
-            expect(sent.from).to.be.equal('methodThrowsAsync');
-            expect(err.message).to.be.equal('this is an error');
-        });
-
+    it('should map async/promise method and wrap with call to next', (done) => {
+        
+        request(server)
+        .get('/methodAsync')
+        .expect(200, {
+            from: 'methodAsync'
+        }, done);
     });
 
+    it('should allow passing extra handlers to route', (done) => {
+        
+        request(server)
+        .get('/methodWithAdditionalHandler')
+        .expect(200, {
+            from: 'methodWithAdditionalHandler',
+            handlerCalled: true
+        }, done);
+    });
+
+    it('should map route declared in contructor without decorator', (done) => {
+        
+        request(server)
+        .get('/methodWithoutDecorator')
+        .expect(200, {
+            from: 'methodWithoutDecorator'
+        }, done);
+    });
+
+    it('should by default create a route with the name of the method', (done) => {
+        
+        request(server)
+        .get('/Controller/defaultRouteAssignedByMethodName')
+        .expect(200, {
+            from: 'defaultRouteAssignedByMethodName'
+        }, done);
+    });
+
+    it('should map plain function route handler', (done) => {
+        
+        request(server)
+        .get('/plainHandler')
+        .expect(200, {
+            from: 'plainHandler'
+        }, done);
+    });
+
+    it('should call next passing error in case of exception in handler', (done) => {
+        
+        request(server)
+        .get('/methodThrows')
+        .expect(500, done);
+    });
+
+    it('should call next passing error in case of exception in async handler', (done) => {
+        
+        request(server)
+        .get('/methodThrowsAsync')
+        .expect(500, done);       
+    });
+
+    it('should deal with route handlers that specify next', (done) => {
+        
+        request(server)
+        .get('/methodWithNext')
+        .expect(200, {
+            from: 'methodWithNext'
+        }, done);
+    });
 });

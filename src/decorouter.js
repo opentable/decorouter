@@ -1,10 +1,13 @@
 import { default as assert } from 'assert';
 
 //support async/promise route handlers and non promise handlers
+//args 0 req, 1 res, 2 next 
 const asyncWrap = fn => (...args) => {
     try{
         let res = fn(...args);
-        Promise.resolve(res).then(args[2]).catch(args[2]);
+        if(res instanceof Promise) {
+            res.then(args[2]).catch(args[2]);
+        }
     } catch(err) {
         args[2](err);
     }
@@ -32,6 +35,7 @@ export function addRoutes(router, functionFactory) {
 }
 
 export function Route(verb, path, ...middleware) {
+    
     return function decorator(target, key) {
         //console.log(typeof(target));
         let namepath = target.name || target.constructor.name;
