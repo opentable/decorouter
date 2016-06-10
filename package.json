@@ -1,6 +1,6 @@
 {
   "name": "decorouter",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "simple decorater based es6 class method routing for express nodejs",
   "main": "./dist/decorouter.js",
   "scripts": {
